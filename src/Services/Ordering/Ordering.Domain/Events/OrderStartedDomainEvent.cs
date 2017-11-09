@@ -12,7 +12,6 @@ namespace Ordering.Domain.Events
     public class OrderStartedDomainEvent
         : INotification
     {
-        public string UserId { get; private set; }
         public int CardTypeId { get; private set; }
         public string CardNumber { get; private set; }
         public string CardSecurityNumber { get; private set; }
@@ -20,13 +19,12 @@ namespace Ordering.Domain.Events
         public DateTime CardExpiration { get; private set; }
         public Order Order { get; private set; }
 
-        public OrderStartedDomainEvent(Order order, string userId,
+        public OrderStartedDomainEvent(Order order,
             int cardTypeId, string cardNumber, 
             string cardSecurityNumber, string cardHolderName, 
             DateTime cardExpiration)
         {
             Order = order;
-            UserId = userId;
             CardTypeId = cardTypeId;
             CardNumber = cardNumber;
             CardSecurityNumber = cardSecurityNumber;

@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
 using Microsoft.eShopOnContainers.Services.Ordering.Domain.Seedwork;
-using Ordering.Domain.Exceptions;
 using System;
 using System.Threading.Tasks;
 
@@ -33,18 +32,7 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.Infrastructure.Repositor
 
         public async Task<Order> GetAsync(int orderId)
         {
-            var order = await _context.Orders.FindAsync(orderId);
-            if (order != null)
-            {
-                await _context.Entry(order)
-                    .Collection(i => i.OrderItems).LoadAsync();
-                await _context.Entry(order)
-                    .Reference(i => i.OrderStatus).LoadAsync();
-                await _context.Entry(order)
-                    .Reference(i => i.Address).LoadAsync();
-            }
-
-            return order;
+            return await _context.Orders.FindAsync(orderId);
         }
 
         public void Update(Order order)

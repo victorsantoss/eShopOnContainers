@@ -1,6 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Microsoft.eShopOnContainers.Services.Identity.API.Services
+namespace Identity.API.Services
 {
     public interface ILoginService<T>
     {

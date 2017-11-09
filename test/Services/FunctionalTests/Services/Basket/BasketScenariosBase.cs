@@ -1,21 +1,20 @@
-﻿namespace FunctionalTests.Services.Basket
-{
-    using Microsoft.AspNetCore;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.Configuration;
-    using System.IO;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 
+namespace FunctionalTests.Services.Basket
+{
     public class BasketScenariosBase
     {
-        private const string ApiUrlBase = "api/v1/basket";
-
         public TestServer CreateServer()
         {
-            var webHostBuilder = WebHost.CreateDefaultBuilder();
-            webHostBuilder.UseContentRoot(Directory.GetCurrentDirectory() + "\\Services\\Basket");
+            var webHostBuilder = new WebHostBuilder();
+            webHostBuilder.UseContentRoot(Directory.GetCurrentDirectory());
             webHostBuilder.UseStartup<BasketTestsStartup>();
-           
+
             return new TestServer(webHostBuilder);
         }
 
@@ -23,14 +22,13 @@
         {
             public static string GetBasketByCustomer(string customerId)
             {
-                return $"{ApiUrlBase}/{customerId}";
+                return $"/{customerId}";
             }
         }
 
         public static class Post
         {
-            public static string CreateBasket = $"{ApiUrlBase}/";
-            public static string Checkout = $"{ApiUrlBase}/checkout";
+            public static string CreateBasket = "/";
         }
     }
 }

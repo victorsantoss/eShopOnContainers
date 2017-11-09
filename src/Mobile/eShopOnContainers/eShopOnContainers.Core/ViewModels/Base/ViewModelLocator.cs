@@ -12,7 +12,6 @@ using eShopOnContainers.Core.Services.Order;
 using eShopOnContainers.Core.Services.User;
 using Xamarin.Forms;
 using eShopOnContainers.Core.Services.Location;
-using eShopOnContainers.Core.Services.Marketing;
 
 namespace eShopOnContainers.Core.ViewModels.Base
 {
@@ -48,11 +47,9 @@ namespace eShopOnContainers.Core.ViewModels.Base
 			builder.RegisterType<OrderDetailViewModel>();
 			builder.RegisterType<ProfileViewModel>();
 			builder.RegisterType<SettingsViewModel>();
-		    builder.RegisterType<CampaignViewModel>();
-		    builder.RegisterType<CampaignDetailsViewModel>();
 
-            // Services
-            builder.RegisterType<NavigationService>().As<INavigationService>().SingleInstance();
+			// Services
+			builder.RegisterType<NavigationService>().As<INavigationService>().SingleInstance();
 			builder.RegisterType<DialogService>().As<IDialogService>();
 			builder.RegisterType<OpenUrlService>().As<IOpenUrlService>();
 			builder.RegisterType<IdentityService>().As<IIdentityService>();
@@ -65,7 +62,6 @@ namespace eShopOnContainers.Core.ViewModels.Base
 				builder.RegisterInstance(new BasketMockService()).As<IBasketService>();
 				builder.RegisterInstance(new OrderMockService()).As<IOrderService>();
 				builder.RegisterInstance(new UserMockService()).As<IUserService>();
-			    builder.RegisterInstance(new CampaignMockService()).As<ICampaignService>();
 
                 UseMockService = true;
 			}
@@ -74,8 +70,7 @@ namespace eShopOnContainers.Core.ViewModels.Base
 				builder.RegisterType<CatalogService>().As<ICatalogService>().SingleInstance();
 				builder.RegisterType<BasketService>().As<IBasketService>().SingleInstance();
 				builder.RegisterType<OrderService>().As<IOrderService>().SingleInstance();
-				builder.RegisterType<UserService>().As<IUserService>().SingleInstance();
-			    builder.RegisterType<CampaignService>().As<ICampaignService>().SingleInstance();
+				builder.RegisterType<UserService>().As<IUserService>().SingleInstance();       
 
                 UseMockService = false;
 			}

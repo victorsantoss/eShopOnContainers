@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.HealthChecks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.HealthChecks;
 using WebStatus.Viewmodels;
 
 namespace WebStatus.Controllers
@@ -25,7 +29,6 @@ namespace WebStatus.Controllers
             }
 
             ViewBag.RefreshSeconds = 60;
-
             return View(data);
         }
 

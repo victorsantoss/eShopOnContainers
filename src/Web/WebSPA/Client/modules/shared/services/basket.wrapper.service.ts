@@ -4,8 +4,7 @@ import { Subject }          from 'rxjs/Subject';
 import { ICatalogItem }     from '../models/catalogItem.model';
 import { IBasketItem }      from '../models/basketItem.model';
 import { IBasket }          from '../models/basket.model';
-import { SecurityService } from '../services/security.service';
-import { Guid } from '../../../guid';
+import { SecurityService }  from '../services/security.service';
 
 @Injectable()
 export class BasketWrapperService {
@@ -28,7 +27,7 @@ export class BasketWrapperService {
                 productName: item.name,
                 quantity: 1,
                 unitPrice: item.price,
-                id: Guid.newGuid(),
+                id: '',
                 oldUnitPrice: 0
             };
 

@@ -9,7 +9,6 @@ namespace eShopOnContainers.Core.Services.Basket
     public class BasketService : IBasketService
     {
         private readonly IRequestProvider _requestProvider;
-        private const string ApiUrlBase = "api/v1/basket";
 
         public BasketService(IRequestProvider requestProvider)
         {
@@ -17,56 +16,39 @@ namespace eShopOnContainers.Core.Services.Basket
         }
 
         public async Task<CustomerBasket> GetBasketAsync(string guidUser, string token)
-        {
-            var builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint)
-            {
-                Path = $"{ApiUrlBase}/{guidUser}"
-            };
+        {    
+            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint);
 
-            var uri = builder.ToString();
+            builder.Path = guidUser;
+
+            string uri = builder.ToString();
 
             CustomerBasket basket =
                     await _requestProvider.GetAsync<CustomerBasket>(uri, token);
 
-            ServicesHelper.FixBasketItemPictureUri(basket?.Items);
+                ServicesHelper.FixBasketItemPictureUri(basket?.Items);
 
             return basket;
         }
 
         public async Task<CustomerBasket> UpdateBasketAsync(CustomerBasket customerBasket, string token)
         {
-            var builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint)
-            {
-                Path = ApiUrlBase
-            };
+            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint);
 
-            var uri = builder.ToString();
+            string uri = builder.ToString();
 
             var result = await _requestProvider.PostAsync(uri, customerBasket, token);
 
             return result;
         }
 
-        public async Task CheckoutAsync(BasketCheckout basketCheckout, string token)
-        {
-            var builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint)
-            {
-                Path = $"{ApiUrlBase}/checkout"
-            };
-
-            var uri = builder.ToString();
-
-            await _requestProvider.PostAsync(uri, basketCheckout, token);
-        }
-
         public async Task ClearBasketAsync(string guidUser, string token)
         {
-            var builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint)
-            {
-                Path = $"{ApiUrlBase}/{guidUser}"
-            };
+            UriBuilder builder = new UriBuilder(GlobalSetting.Instance.BasketEndpoint);
 
-            var uri = builder.ToString();
+            builder.Path = guidUser;
+
+            string uri = builder.ToString();
 
             await _requestProvider.DeleteAsync(uri, token);
         }

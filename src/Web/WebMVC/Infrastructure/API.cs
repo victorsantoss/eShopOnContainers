@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WebMVC.Infrastructure
+﻿namespace WebMVC.Infrastructure
 {
     public static class API
     {
@@ -14,11 +12,6 @@ namespace WebMVC.Infrastructure
             public static string UpdateBasket(string baseUri)
             {
                 return baseUri;
-            }
-
-            public static string CheckoutBasket(string baseUri)
-            {
-                return $"{baseUri}/checkout";
             }
 
             public static string CleanBasket(string baseUri, string basketId)
@@ -42,16 +35,6 @@ namespace WebMVC.Infrastructure
             public static string AddNewOrder(string baseUri)
             {
                 return $"{baseUri}/new";
-            }
-
-            public static string CancelOrder(string baseUri)
-            {
-                return $"{baseUri}/cancel";
-            }
-
-            public static string ShipOrder(string baseUri)
-            {
-                return $"{baseUri}/ship";
             }
         }
 
@@ -80,27 +63,6 @@ namespace WebMVC.Infrastructure
             {
                 return $"{baseUri}catalogTypes";
             }
-        }
-
-        public static class Marketing
-        {
-            public static string GetAllCampaigns(string baseUri, int take, int page)
-            {
-                return $"{baseUri}user?pageSize={take}&pageIndex={page}";
-            }
-
-            public static string GetAllCampaignById(string baseUri, int id)
-            {
-                return $"{baseUri}{id}";
-            }
-        }
-
-        public static class Locations
-        {
-            public static string CreateOrUpdateUserLocation(string baseUri)
-            {
-                return baseUri;
-            }           
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Catalog.API.Infrastructure
 {
+    using EntityFrameworkCore.Metadata.Builders;
     using Microsoft.EntityFrameworkCore;
-    using EntityConfigurations;
     using Model;
-    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 
     public class CatalogContext : DbContext
     {
@@ -16,21 +16,66 @@
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
-            builder.ApplyConfiguration(new CatalogBrandEntityTypeConfiguration());
-            builder.ApplyConfiguration(new CatalogTypeEntityTypeConfiguration());
-            builder.ApplyConfiguration(new CatalogItemEntityTypeConfiguration());
+            builder.Entity<CatalogBrand>(ConfigureCatalogBrand);
+            builder.Entity<CatalogType>(ConfigureCatalogType);
+            builder.Entity<CatalogItem>(ConfigureCatalogItem);
         }     
-    }
 
-
-    public class CatalogContextDesignFactory : IDesignTimeDbContextFactory<CatalogContext>
-    {
-        public CatalogContext CreateDbContext(string[] args)
+        void ConfigureCatalogItem(EntityTypeBuilder<CatalogItem> builder)
         {
-            var optionsBuilder =  new DbContextOptionsBuilder<CatalogContext>()
-                .UseSqlServer("Server=.;Initial Catalog=Microsoft.eShopOnContainers.Services.CatalogDb;Integrated Security=true");
+            builder.ToTable("Catalog");
 
-            return new CatalogContext(optionsBuilder.Options);
+            builder.Property(ci => ci.Id)
+                .ForSqlServerUseSequenceHiLo("catalog_hilo")
+                .IsRequired();
+
+            builder.Property(ci => ci.Name)
+                .IsRequired(true)
+                .HasMaxLength(50);
+
+            builder.Property(ci => ci.Price)
+                .IsRequired(true);
+
+            builder.Property(ci => ci.PictureUri)
+                .IsRequired(false);
+
+            builder.HasOne(ci => ci.CatalogBrand)
+                .WithMany()
+                .HasForeignKey(ci => ci.CatalogBrandId);
+
+            builder.HasOne(ci => ci.CatalogType)
+                .WithMany()
+                .HasForeignKey(ci => ci.CatalogTypeId);
+        }
+
+        void ConfigureCatalogBrand(EntityTypeBuilder<CatalogBrand> builder)
+        {
+            builder.ToTable("CatalogBrand");
+
+            builder.HasKey(ci => ci.Id);
+
+            builder.Property(ci => ci.Id)
+               .ForSqlServerUseSequenceHiLo("catalog_brand_hilo")
+               .IsRequired();
+
+            builder.Property(cb => cb.Brand)
+                .IsRequired()
+                .HasMaxLength(100);
+        }
+
+        void ConfigureCatalogType(EntityTypeBuilder<CatalogType> builder)
+        {
+            builder.ToTable("CatalogType");
+
+            builder.HasKey(ci => ci.Id);
+
+            builder.Property(ci => ci.Id)
+               .ForSqlServerUseSequenceHiLo("catalog_type_hilo")
+               .IsRequired();
+
+            builder.Property(cb => cb.Type)
+                .IsRequired()
+                .HasMaxLength(100);
         }
     }
 }

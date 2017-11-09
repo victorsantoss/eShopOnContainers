@@ -10,7 +10,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
 {
@@ -25,15 +24,13 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
         private readonly ILogger<ResilientHttpClient> _logger;
         private readonly Func<string, IEnumerable<Policy>> _policyCreator;
         private ConcurrentDictionary<string, PolicyWrap> _policyWrappers;
-        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ResilientHttpClient(Func<string, IEnumerable<Policy>> policyCreator, ILogger<ResilientHttpClient> logger, IHttpContextAccessor httpContextAccessor)
+        public ResilientHttpClient(Func<string, IEnumerable<Policy>> policyCreator, ILogger<ResilientHttpClient> logger)
         {
             _client = new HttpClient();
             _logger = logger;
             _policyCreator = policyCreator;
             _policyWrappers = new ConcurrentDictionary<string, PolicyWrap>();
-            _httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -55,12 +52,10 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
             {
                 var requestMessage = new HttpRequestMessage(HttpMethod.Delete, uri);
 
-                SetAuthorizationHeader(requestMessage);
-
                 if (authorizationToken != null)
                 {
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
-                }                
+                }
 
                 if (requestId != null)
                 {
@@ -70,7 +65,6 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
                 return await _client.SendAsync(requestMessage);
             });
         }
-        
 
         public Task<string> GetStringAsync(string uri, string authorizationToken = null, string authorizationMethod = "Bearer")
         {
@@ -80,22 +74,12 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
             {
                 var requestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-                SetAuthorizationHeader(requestMessage);
-
                 if (authorizationToken != null)
                 {
                     requestMessage.Headers.Authorization = new AuthenticationHeaderValue(authorizationMethod, authorizationToken);
                 }
 
                 var response = await _client.SendAsync(requestMessage);
-
-                // raise exception if HttpResponseCode 500 
-                // needed for circuit breaker to track fails
-
-                if (response.StatusCode == HttpStatusCode.InternalServerError)
-                {
-                    throw new HttpRequestException();
-                }
 
                 return await response.Content.ReadAsStringAsync();
             });
@@ -115,8 +99,6 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
             return HttpInvoker(origin, async () =>
            {
                var requestMessage = new HttpRequestMessage(method, uri);
-
-               SetAuthorizationHeader(requestMessage);
 
                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(item), System.Text.Encoding.UTF8, "application/json");
 
@@ -172,15 +154,6 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.Resilience.Http
             var origin = $"{url.Scheme}://{url.DnsSafeHost}:{url.Port}";
 
             return origin;
-        }
-
-        private void SetAuthorizationHeader(HttpRequestMessage requestMessage)
-        {
-            var authorizationHeader = _httpContextAccessor.HttpContext.Request.Headers["Authorization"];
-            if (!string.IsNullOrEmpty(authorizationHeader))
-            {
-                requestMessage.Headers.Add("Authorization", new List<string>() { authorizationHeader });
-            }
-        }
+        }        
     }
 }

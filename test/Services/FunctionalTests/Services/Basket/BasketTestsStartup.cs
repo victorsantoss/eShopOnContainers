@@ -1,14 +1,16 @@
-﻿using FunctionalTests.Middleware;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.eShopOnContainers.Services.Basket.API;
+using System;
+using System.Collections.Generic;
+using System.Text;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.eShopOnContainers.Services.Basket.API;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Builder;
+using FunctionalTests.Middleware;
 
 namespace FunctionalTests.Services.Basket
 {
     public class BasketTestsStartup : Startup
     {
-        public BasketTestsStartup(IConfiguration configuration) : base(configuration)
+        public BasketTestsStartup(IHostingEnvironment env) : base(env)
         {
         }
 

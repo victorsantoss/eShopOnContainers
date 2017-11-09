@@ -1,5 +1,8 @@
 ﻿using Microsoft.Extensions.HealthChecks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace WebStatus.Extensions
 {
@@ -14,5 +17,6 @@ namespace WebStatus.Extensions
 
             return builder;
         }
+
     }
 }
