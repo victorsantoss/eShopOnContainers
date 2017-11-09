@@ -7,7 +7,6 @@ using eShopOnContainers.Core.Behaviors;
 using System.ComponentModel;
 using System.Diagnostics;
 
-[assembly: ResolutionGroupName("eShopOnContainers")]
 [assembly: ExportEffect(typeof(EntryLineColorEffect), "EntryLineColorEffect")]
 namespace eShopOnContainers.Droid.Effects
 {

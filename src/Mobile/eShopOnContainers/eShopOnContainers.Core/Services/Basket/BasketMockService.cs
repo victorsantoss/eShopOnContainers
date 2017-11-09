@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xamarin.Forms;
-using System;
 
 namespace eShopOnContainers.Core.Services.Basket
 {
@@ -57,21 +56,6 @@ namespace eShopOnContainers.Core.Services.Basket
             {
                 MockCustomBasket.Items.Clear();
             }
-        }
-
-        public Task CheckoutAsync(BasketCheckout basketCheckout, string token)
-        {
-            if (string.IsNullOrEmpty(token))
-            {
-                return Task.FromResult(0);
-            }
-
-            if (basketCheckout != null)
-            {
-                MockCustomBasket.Items.Clear();
-            }
-
-            return Task.FromResult(0);
         }
     }
 }

@@ -7,7 +7,6 @@ using Microsoft.eShopOnContainers.WebMVC.Services;
 using Microsoft.eShopOnContainers.WebMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
-using Polly.CircuitBreaker;
 
 namespace Microsoft.eShopOnContainers.WebMVC.Controllers
 {
@@ -27,79 +26,47 @@ namespace Microsoft.eShopOnContainers.WebMVC.Controllers
 
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                var user = _appUserParser.Parse(HttpContext.User);
-                var vm = await _basketSvc.GetBasket(user);
+            var user = _appUserParser.Parse(HttpContext.User);
+            var vm = await _basketSvc.GetBasket(user);
+            
 
-                return View(vm);
-            }
-            catch (BrokenCircuitException)
-            {
-                // Catch error when Basket.api is in circuit-opened mode                 
-                HandleBrokenCircuitException();
-            }
-
-            return View();
+            return View(vm);
         }
 
         
         [HttpPost]
         public async Task<IActionResult> Index(Dictionary<string, int> quantities, string action)
         {
-            try
-            {
-                var user = _appUserParser.Parse(HttpContext.User);
-                var basket = await _basketSvc.SetQuantities(user, quantities);
-                var vm = await _basketSvc.UpdateBasket(basket);
+            var user = _appUserParser.Parse(HttpContext.User);
+            var basket = await _basketSvc.SetQuantities(user, quantities);
+            var vm = await _basketSvc.UpdateBasket(basket);
 
-                if (action == "[ Checkout ]")
-                {
-                    var order = _basketSvc.MapBasketToOrder(basket);
-                    return RedirectToAction("Create", "Order");
-                }
-            }
-            catch (BrokenCircuitException)
+            if (action == "[ Checkout ]")
             {
-                // Catch error when Basket.api is in circuit-opened mode                 
-                HandleBrokenCircuitException();
+                var order = _basketSvc.MapBasketToOrder(basket);
+                return RedirectToAction("Create", "Order");
             }
-
-            return View();
+           
+            return View(vm);
         }
 
         public async Task<IActionResult> AddToCart(CatalogItem productDetails)
         {
-            try
+            if (productDetails.Id != null)
             {
-                if (productDetails.Id != null)
+                var user = _appUserParser.Parse(HttpContext.User);
+                var product = new BasketItem()
                 {
-                    var user = _appUserParser.Parse(HttpContext.User);
-                    var product = new BasketItem()
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Quantity = 1,
-                        ProductName = productDetails.Name,
-                        PictureUrl = productDetails.PictureUri,
-                        UnitPrice = productDetails.Price,
-                        ProductId = productDetails.Id
-                    };
-                    await _basketSvc.AddItemToBasket(user, product);
-                }
-                return RedirectToAction("Index", "Catalog");            
+                    Id = Guid.NewGuid().ToString(),
+                    Quantity = 1,
+                    ProductName = productDetails.Name,
+                    PictureUrl = productDetails.PictureUri,
+                    UnitPrice = productDetails.Price,
+                    ProductId = productDetails.Id
+                };
+                await _basketSvc.AddItemToBasket(user, product);
             }
-            catch (BrokenCircuitException)
-            {
-                // Catch error when Basket.api is in circuit-opened mode                 
-                HandleBrokenCircuitException();
-            }
-
             return RedirectToAction("Index", "Catalog");
-        }
-
-        private void HandleBrokenCircuitException()
-        {
-            TempData["BasketInoperativeMsg"] = "Basket Service is inoperative, please try later on. (Business Msg Due to Circuit-Breaker)";
         }
     }
 }

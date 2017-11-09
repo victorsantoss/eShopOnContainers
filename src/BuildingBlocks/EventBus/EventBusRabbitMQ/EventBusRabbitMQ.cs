@@ -1,17 +1,18 @@
-﻿using Autofac;
-using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
+﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Polly;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,22 +25,18 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
         private readonly IRabbitMQPersistentConnection _persistentConnection;
         private readonly ILogger<EventBusRabbitMQ> _logger;
         private readonly IEventBusSubscriptionsManager _subsManager;
-        private readonly ILifetimeScope _autofac;
-        private readonly string AUTOFAC_SCOPE_NAME = "eshop_event_bus";
-        private readonly int _retryCount;
+             
 
         private IModel _consumerChannel;
         private string _queueName;
 
-        public EventBusRabbitMQ(IRabbitMQPersistentConnection persistentConnection, ILogger<EventBusRabbitMQ> logger,
-            ILifetimeScope autofac, IEventBusSubscriptionsManager subsManager, int retryCount = 5)
+        public EventBusRabbitMQ(IRabbitMQPersistentConnection persistentConnection, ILogger<EventBusRabbitMQ> logger, IEventBusSubscriptionsManager subsManager)
         {
             _persistentConnection = persistentConnection ?? throw new ArgumentNullException(nameof(persistentConnection));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _subsManager = subsManager ?? new InMemoryEventBusSubscriptionsManager();
             _consumerChannel = CreateConsumerChannel();
-            _autofac = autofac;
-            _retryCount = retryCount;
+
             _subsManager.OnEventRemoved += SubsManager_OnEventRemoved;
         }
 
@@ -73,7 +70,7 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
 
             var policy = RetryPolicy.Handle<BrokerUnreachableException>()
                 .Or<SocketException>()
-                .WaitAndRetry(_retryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
+                .WaitAndRetry(5, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)), (ex, time) =>
                 {
                     _logger.LogWarning(ex.ToString());
                 });
@@ -99,25 +96,12 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
             }
         }
 
-        public void SubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
-        {
-            DoInternalSubscription(eventName);
-            _subsManager.AddDynamicSubscription<TH>(eventName);
-        }
-
-        public void Subscribe<T, TH>()
+        public void Subscribe<T, TH>(Func<TH> handler)
             where T : IntegrationEvent
             where TH : IIntegrationEventHandler<T>
         {
-            var eventName = _subsManager.GetEventKey<T>();
-            DoInternalSubscription(eventName);
-            _subsManager.AddSubscription<T, TH>();
-        }
-
-        private void DoInternalSubscription(string eventName)
-        {
-            var containsKey = _subsManager.HasSubscriptionsForEvent(eventName);
+            var eventName = typeof(T).Name;
+            var containsKey = _subsManager.HasSubscriptionsForEvent<T>();
             if (!containsKey)
             {
                 if (!_persistentConnection.IsConnected)
@@ -132,6 +116,9 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
                                       routingKey: eventName);
                 }
             }
+
+            _subsManager.AddSubscription<T, TH>(handler);
+
         }
 
         public void Unsubscribe<T, TH>()
@@ -141,12 +128,18 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
             _subsManager.RemoveSubscription<T, TH>();
         }
 
-        public void UnsubscribeDynamic<TH>(string eventName)
-            where TH : IDynamicIntegrationEventHandler
+        private static Func<IIntegrationEventHandler> FindHandlerByType(Type handlerType, IEnumerable<Func<IIntegrationEventHandler>> handlers)
         {
-            _subsManager.RemoveDynamicSubscription<TH>(eventName);
-        }
+            foreach (var func in handlers)
+            {
+                if (func.GetMethodInfo().ReturnType == handlerType)
+                {
+                    return func;
+                }
+            }
 
+            return null;
+        }
 
         public void Dispose()
         {
@@ -182,7 +175,7 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
             };
 
             channel.BasicConsume(queue: _queueName,
-                                 autoAck: false,
+                                 noAck: true,
                                  consumer: consumer);
 
             channel.CallbackException += (sender, ea) =>
@@ -197,29 +190,17 @@ namespace Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ
         private async Task ProcessEvent(string eventName, string message)
         {
 
-
             if (_subsManager.HasSubscriptionsForEvent(eventName))
-            {
-                using (var scope = _autofac.BeginLifetimeScope(AUTOFAC_SCOPE_NAME))
+            { 
+                var eventType = _subsManager.GetEventTypeByName(eventName);
+                var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
+                var handlers = _subsManager.GetHandlersForEvent(eventName);
+
+                foreach (var handlerfactory in handlers)
                 {
-                    var subscriptions = _subsManager.GetHandlersForEvent(eventName);
-                    foreach (var subscription in subscriptions)
-                    {
-                        if (subscription.IsDynamic)
-                        { 
-                            var handler = scope.ResolveOptional(subscription.HandlerType) as IDynamicIntegrationEventHandler;
-                            dynamic eventData = JObject.Parse(message);
-                            await handler.Handle(eventData);
-                        }
-                        else
-                        {
-                            var eventType = _subsManager.GetEventTypeByName(eventName);
-                            var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
-                            var handler = scope.ResolveOptional(subscription.HandlerType);
-                            var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
-                            await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
-                        }
-                    }
+                    var handler = handlerfactory.DynamicInvoke();
+                    var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+                    await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
                 }
             }
         }

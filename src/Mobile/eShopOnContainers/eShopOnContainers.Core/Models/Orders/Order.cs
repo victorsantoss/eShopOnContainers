@@ -20,7 +20,7 @@ namespace eShopOnContainers.Core.Models.Orders
         public DateTime OrderDate { get; set; }
 
         [JsonProperty("status")]
-        public OrderStatus OrderStatus { get; set; }
+        public OrderState State { get; set; }
 
         [JsonProperty("city")]
         public string ShippingCity { get; set; }
@@ -54,6 +54,6 @@ namespace eShopOnContainers.Core.Models.Orders
         public decimal Total { get; set; }
 
         [JsonProperty("ordernumber")]
-        public int OrderNumber { get; set; }
+        public string OrderNumber { get; set; }
     }
 }

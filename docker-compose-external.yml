@@ -1,8 +1,8 @@
-version: '3'
+version: '2'
 
 services:
   sql.data:
-    image: microsoft/mssql-server-linux:2017-latest
+    image: microsoft/mssql-server-linux
 
   basket.data:
     image: redis

@@ -17,8 +17,6 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.O
 
         public String ZipCode { get; private set; }
 
-        private Address() { }
-
         public Address(string street, string city, string state, string country, string zipcode)
         {
             Street = street;

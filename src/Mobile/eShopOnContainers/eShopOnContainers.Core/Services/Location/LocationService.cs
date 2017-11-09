@@ -1,9 +1,9 @@
 ﻿namespace eShopOnContainers.Core.Services.Location
 {
+    using eShopOnContainers.Core.Models.Location;
+    using eShopOnContainers.Core.Services.RequestProvider;
     using System;
     using System.Threading.Tasks;
-    using Models.Location;
-    using RequestProvider;
 
     public class LocationService : ILocationService
     {
@@ -14,7 +14,7 @@
             _requestProvider = requestProvider;
         }
 
-        public async Task UpdateUserLocation(Location newLocReq, string token)
+        public async Task UpdateUserLocation(LocationRequest newLocReq)
         {
             UriBuilder builder = new UriBuilder(GlobalSetting.Instance.LocationEndpoint);
 
@@ -22,7 +22,7 @@
 
             string uri = builder.ToString();
 
-            await _requestProvider.PostAsync(uri, newLocReq, token);
+            var result = await _requestProvider.PostAsync(uri, newLocReq);
         }
     }
 }

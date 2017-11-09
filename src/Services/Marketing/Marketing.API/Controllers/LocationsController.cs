@@ -7,7 +7,6 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Controllers
     using Microsoft.eShopOnContainers.Services.Marketing.API.Model;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading.Tasks;
 
     [Authorize]
@@ -22,9 +21,6 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Controllers
 
         [HttpGet]
         [Route("api/v1/campaigns/{campaignId:int}/locations/{userLocationRuleId:int}")]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        [ProducesResponseType(typeof(UserLocationRuleDTO),(int)HttpStatusCode.OK)]
         public IActionResult GetLocationByCampaignAndLocationRuleId(int campaignId, 
             int userLocationRuleId)
         {
@@ -49,9 +45,6 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Controllers
 
         [HttpGet]
         [Route("api/v1/campaigns/{campaignId:int}/locations")]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.OK)]
-        [ProducesResponseType(typeof(List<UserLocationRuleDTO>), (int)HttpStatusCode.OK)]
         public IActionResult GetAllLocationsByCampaignId(int campaignId)
         {
             if (campaignId < 1)
@@ -76,8 +69,6 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Controllers
 
         [HttpPost]
         [Route("api/v1/campaigns/{campaignId:int}/locations")]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.Created)]
         public async Task<IActionResult> CreateLocation(int campaignId, 
             [FromBody] UserLocationRuleDTO locationRuleDto)
         {
@@ -92,14 +83,12 @@ namespace Microsoft.eShopOnContainers.Services.Marketing.API.Controllers
             await _context.Rules.AddAsync(locationRule);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetLocationByCampaignAndLocationRuleId),
-                new { campaignId = campaignId, userLocationRuleId = locationRule.Id }, null);
+            return CreatedAtAction(nameof(GetLocationByCampaignAndLocationRuleId), 
+                new { campaignId = campaignId, locationRuleId = locationRule.Id }, null);
         }
 
         [HttpDelete]
         [Route("api/v1/campaigns/{campaignId:int}/locations/{userLocationRuleId:int}")]
-        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        [ProducesResponseType((int)HttpStatusCode.NotFound)]
         public async Task<IActionResult> DeleteLocationById(int campaignId, int userLocationRuleId)
         {
             if (campaignId < 1 || userLocationRuleId < 1)

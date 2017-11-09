@@ -25,11 +25,9 @@ spec:
     spec:
       containers:
       - name: sql-data
-        image: microsoft/mssql-server-linux:2017-latest
+        image: microsoft/mssql-server-linux:ctp1-3
         env:
         - name: ACCEPT_EULA
           value: "Y"
-        - name: MSSQL_PID
-          value: Developer
-        - name: MSSQL_SA_PASSWORD
+        - name: SA_PASSWORD
           value: Pass@word

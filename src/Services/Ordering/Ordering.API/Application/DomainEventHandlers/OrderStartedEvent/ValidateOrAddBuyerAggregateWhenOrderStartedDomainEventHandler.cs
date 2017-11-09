@@ -26,12 +26,14 @@ namespace Ordering.API.Application.DomainEventHandlers.OrderStartedEvent
         {
             var cardTypeId = (orderStartedEvent.CardTypeId != 0) ? orderStartedEvent.CardTypeId : 1;
 
-            var buyer = await _buyerRepository.FindAsync(orderStartedEvent.UserId);
+            var userGuid = _identityService.GetUserIdentity();
+
+            var buyer = await _buyerRepository.FindAsync(userGuid);
             bool buyerOriginallyExisted = (buyer == null) ? false : true;
 
             if (!buyerOriginallyExisted)
             {                
-                buyer = new Buyer(orderStartedEvent.UserId);
+                buyer = new Buyer(userGuid);
             }
 
             buyer.VerifyOrAddPaymentMethod(cardTypeId,

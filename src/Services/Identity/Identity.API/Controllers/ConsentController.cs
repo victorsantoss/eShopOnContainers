@@ -1,13 +1,19 @@
-﻿using IdentityServer4.Models;
+﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
+
+
 using IdentityServer4.Services;
-using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.eShopOnContainers.Services.Identity.API.Models.AccountViewModels;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer4.Models;
+using IdentityServer4.Stores;
+using IdentityServer4.Quickstart.UI.Models;
+using Identity.API.Models.AccountViewModels;
+using Identity.API.Services;
 
-namespace Microsoft.eShopOnContainers.Services.Identity.API.Controllers
+namespace IdentityServer4.Quickstart.UI.Controllers
 {
     /// <summary>
     /// This controller implements the consent logic

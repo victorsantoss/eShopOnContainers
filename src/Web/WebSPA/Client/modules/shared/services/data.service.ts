@@ -39,10 +39,6 @@ export class DataService {
         return this.doPost(url, data, false, params);
     }
 
-    putWithId(url: string, data: any, params?: any): Observable<Response> {
-        return this.doPut(url, data, true, params);
-    }
-
     private doPost(url: string, data: any, needId: boolean, params?: any): Observable<Response> {
         let options: RequestOptionsArgs = {};
 
@@ -56,24 +52,6 @@ export class DataService {
         }
 
         return this.http.post(url, data, options).map(
-            (res: Response) => {
-                return res;
-            }).catch(this.handleError);
-    }
-
-    private doPut(url: string, data: any, needId: boolean, params?: any): Observable<Response> {
-        let options: RequestOptionsArgs = {};
-
-        options.headers = new Headers();
-        if (this.securityService) {
-            options.headers.append('Authorization', 'Bearer ' + this.securityService.GetToken());
-        }
-        if (needId) {
-            let guid = Guid.newGuid();
-            options.headers.append('x-requestid', guid);
-        }
-
-        return this.http.put(url, data, options).map(
             (res: Response) => {
                 return res;
             }).catch(this.handleError);
@@ -102,7 +80,7 @@ export class DataService {
         if (error instanceof Response) {
             let errMessage = '';
             try {
-                errMessage = error.json();
+                errMessage = error.json().error;
             } catch (err) {
                 errMessage = error.statusText;
             }
