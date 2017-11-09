@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace IntegrationTests.Services.Locations
 {
@@ -11,7 +9,7 @@ namespace IntegrationTests.Services.Locations
     {
         public TestServer CreateServer()
         {
-            var webHostBuilder = new WebHostBuilder();
+            var webHostBuilder = WebHost.CreateDefaultBuilder();
             webHostBuilder.UseContentRoot(Directory.GetCurrentDirectory() + "\\Services\\Locations");
             webHostBuilder.UseStartup<LocationsTestsStartup>();
 
@@ -22,12 +20,12 @@ namespace IntegrationTests.Services.Locations
         {
             public static string Locations = "api/v1/locations";
 
-            public static string LocationBy(string id)
+            public static string LocationBy(int id)
             {
                 return $"api/v1/locations/{id}";
             }
 
-            public static string UserLocationBy(int id)
+            public static string UserLocationBy(string id)
             {
                 return $"api/v1/locations/user/{id}";
             }

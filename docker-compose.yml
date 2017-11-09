@@ -1,8 +1,9 @@
-version: '2'
+version: '3'
 
 services:
+
   basket.api:
-    image: eshop/basket.api
+    image: eshop/basket.api:${TAG:-latest}
     build:
       context: ./src/Services/Basket/Basket.API
       dockerfile: Dockerfile    
@@ -12,7 +13,7 @@ services:
       - rabbitmq
 
   catalog.api:
-    image: eshop/catalog.api
+    image: eshop/catalog.api:${TAG:-latest}
     build:
       context: ./src/Services/Catalog/Catalog.API
       dockerfile: Dockerfile    
@@ -21,7 +22,7 @@ services:
       - rabbitmq
 
   identity.api:
-    image: eshop/identity.api
+    image: eshop/identity.api:${TAG:-latest}
     build:
       context: ./src/Services/Identity/Identity.API
       dockerfile: Dockerfile    
@@ -29,33 +30,39 @@ services:
       - sql.data
 
   ordering.api:
-    image: eshop/ordering.api
+    image: eshop/ordering.api:${TAG:-latest}
     build:
       context: ./src/Services/Ordering/Ordering.API
       dockerfile: Dockerfile    
     depends_on:
       - sql.data
+      - rabbitmq
 
   marketing.api:
-    image: eshop/marketing.api
+    image: eshop/marketing.api:${TAG:-latest}
     build:
       context: ./src/Services/Marketing/Marketing.API
       dockerfile: Dockerfile    
     depends_on:
       - sql.data
+      - nosql.data
       - identity.api
+      - rabbitmq
 
   webspa:
-    image: eshop/webspa
+    image: eshop/webspa:${TAG:-latest}
     build:
       context: ./src/Web/WebSPA
       dockerfile: Dockerfile    
     depends_on:
+      - catalog.api
+      - ordering.api
       - identity.api
       - basket.api
+      - marketing.api
 
   webmvc:
-    image: eshop/webmvc
+    image: eshop/webmvc:${TAG:-latest}
     build:
       context: ./src/Web/WebMVC
       dockerfile: Dockerfile    
@@ -64,9 +71,33 @@ services:
       - ordering.api
       - identity.api
       - basket.api
+      - marketing.api
+
+  webstatus:
+    image: eshop/webstatus:${TAG:-latest}
+    build:
+      context: ./src/Web/WebStatus
+      dockerfile: Dockerfile
+
+  payment.api:
+    image: eshop/payment.api:${TAG:-latest}
+    build:
+      context: ./src/Services/Payment/Payment.API
+      dockerfile: Dockerfile
+    depends_on:
+      - rabbitmq    
+    
+  locations.api:
+    image: eshop/locations.api:${TAG:-latest}
+    build:
+      context: ./src/Services/Location/Locations.API
+      dockerfile: Dockerfile
+    depends_on:
+      - nosql.data
+      - rabbitmq
 
   sql.data:
-    image: microsoft/mssql-server-linux
+    image: microsoft/mssql-server-linux:2017-latest
 
   nosql.data:
     image: mongo
@@ -75,22 +106,9 @@ services:
     image: redis
     ports:
       - "6379:6379"
-
+      
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management
     ports:
+      - "15672:15672"
       - "5672:5672"
-
-  webstatus:
-    image: eshop/webstatus
-    build:
-      context: ./src/Web/WebStatus
-      dockerfile: Dockerfile    
-    
-  locations.api:
-    image: locations.api
-    build:
-      context: ./src/Services/Location/Locations.API
-      dockerfile: Dockerfile
-    depends_on:
-      - nosql.data

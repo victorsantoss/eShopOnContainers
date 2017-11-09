@@ -63,4 +63,15 @@
                 WinPhone="Assets\menu_cart.png"/>
         </views:BasketView.Icon>
     </views:BasketView>
+    <!-- CAMPAIGNS -->
+    <views:CampaignView  
+        x:Name="CampaignView">
+        <views:CampaignView.Icon>
+            <OnPlatform        
+                x:TypeArguments="FileImageSource"
+                Android="menu_campaigns"
+                iOS="menu_campaigns"
+                WinPhone="Assets\menu_campaigns.png"/>
+        </views:CampaignView.Icon>
+    </views:CampaignView>
 </TabbedPage>
